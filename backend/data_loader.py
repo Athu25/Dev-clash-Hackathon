@@ -1,0 +1,50 @@
+import os
+import pandas as pd
+import yfinance as yf
+
+def fetch_data(ticker_symbol, start_date, end_date, save_to_csv=False, csv_folder='csv'):
+    """
+    Fetches historical stock data for a given ticker symbol between specified dates.
+    Optionally saves the data to a CSV file in the specified folder.
+
+    Parameters:
+    - ticker_symbol (str): The stock ticker symbol (e.g., 'AAPL').
+    - start_date (str): The start date in the format 'YYYY-MM-DD'.
+    - end_date (str): The end date in the format 'YYYY-MM-DD'.
+    - save_to_csv (bool): Whether to save the data to a CSV file. Default is False.
+    - csv_folder (str): The folder where the CSV file will be saved. Default is 'csv'.
+
+    Returns:
+    - pd.DataFrame: DataFrame containing the historical stock data.
+    """
+    # Fetch data from Yahoo Finance
+    df = yf.download(ticker_symbol, start=start_date, end=end_date)
+
+    if save_to_csv:
+        # Ensure the folder exists; create it if it doesn't
+        if not os.path.exists(csv_folder):
+            os.makedirs(csv_folder)
+
+        # Define the path for the CSV file
+        csv_file_path = os.path.join(csv_folder, f"{ticker_symbol}_{start_date}_to_{end_date}.csv")
+
+        # Save the DataFrame to a CSV file
+        df.to_csv(r'C:\Users\adity\OneDrive\Documents\GitHub\Dev-clash-Hackathon\data\AAPL_data.csv', index=True)
+        print(r"Data saved to {C:\Users\adity\OneDrive\Documents\GitHub\Dev-clash-Hackathon\data\AAPL_data.csv}")
+
+    return df
+
+# Import the fetch_data function from data_loader.py
+from data_loader import fetch_data
+
+# Define parameters
+ticker = 'AAPL'
+start = '2025-01-01'
+end = '2025-03-31'
+
+# Fetch data and save to CSV
+data_frame = fetch_data(ticker, start, end, save_to_csv=True)
+
+# The data is now saved in the 'csv' folder and also available as a DataFrame
+print(data_frame.head(50))
+
