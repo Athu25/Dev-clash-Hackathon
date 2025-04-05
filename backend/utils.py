@@ -1,20 +1,20 @@
-def create_target_label(df):
-    df = df.copy()
-    df['Target'] = (df['Close'].shift(-1) > df['Close']).astype(int)
-    return df.dropna()
+def preprocess_data(df, sequence_length=30):
+    from sklearn.preprocessing import MinMaxScaler
+    import numpy as np
 
-def get_features_and_labels(df):
-    df = df.copy()
+    df = df.sort_values("Date")  # sort by date just in case
+    df = df.dropna()
 
-    # Drop Date column (case-insensitive)
-    for col in df.columns:
-        if col.lower() == 'date':
-            df = df.drop(columns=[col])
-            break
+    # Select relevant features (you can customize this)
+    features = ['Open', 'High', 'Low', 'Close', 'Volume']
+    df_filtered = df[features]
 
-    if 'Target' not in df.columns:
-        raise ValueError("Target column not found in the DataFrame.")
+    scaler = MinMaxScaler()
+    scaled_data = scaler.fit_transform(df_filtered)
 
-    X = df.drop('Target', axis=1)
-    y = df['Target']
-    return X, y
+    sequences = []
+    for i in range(len(scaled_data) - sequence_length):
+        sequences.append(scaled_data[i:i + sequence_length])
+
+    X = np.array(sequences)
+    return X, scaler
