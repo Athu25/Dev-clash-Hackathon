@@ -1,31 +1,28 @@
 import pandas as pd
-import joblib
+import numpy as np
 import os
+from tensorflow.keras.models import load_model
+from utils import preprocess_data  # assume this handles scaling and shaping
 
-from utils import create_target_label, get_features_and_labels
+# Load LSTM model
+model_path = os.path.join('models', 'lstm_model.h5')
+model = load_model(model_path)
 
-# Load the trained model once
-model_path = os.path.join('models', 'model.pkl')
-model = joblib.load(model_path)
-
-# Load the latest data sample
+# Load and preprocess data
 def generate_trade_signal():
     data_path = os.path.join('data', 'AAPL_data.csv')
     df = pd.read_csv(data_path)
     df.columns = df.columns.str.strip()
-    
-    # Preprocess
-    df = create_target_label(df)
-    df = df.dropna()
-    
-    # Use the last row for prediction
-    X, _ = get_features_and_labels(df)
-    latest_sample = X.iloc[[-1]]
 
-    prediction = model.predict(latest_sample)[0]
-    confidence = max(model.predict_proba(latest_sample)[0])
+    # Preprocess the data (scaling, creating sequences, etc.)
+    X, latest_features = preprocess_data(df)
 
-    action = "BUY" if prediction == 1 else "SELL"
+    # Make prediction on latest feature sequence
+    prediction = model.predict(latest_features)
+    predicted_class = int(prediction[0][0] > 0.5)
+    confidence = float(prediction[0][0]) if predicted_class == 1 else 1 - float(prediction[0][0])
+    
+    action = "BUY" if predicted_class == 1 else "SELL"
 
     return {
         "symbol": "AAPL",
