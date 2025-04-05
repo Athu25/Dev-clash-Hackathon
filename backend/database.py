@@ -33,4 +33,4 @@ def get_trades():
     return [
         {'id': row[0], 'symbol': row[1], 'action': row[2], 'confidence': row[3], 'timestamp': row[4]}
         for row in rows
-    ]
+    ]  
