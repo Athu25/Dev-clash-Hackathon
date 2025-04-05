@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trade Logs</title>
+  <script>
+    async function loadTrades() {
+      const response = await fetch('/api/trades');
+      const data = await response.json();
+      const table = document.getElementById('trade-table');
+      table.innerHTML = `
+        <tr>
+          <th>ID</th>
+          <th>Symbol</th>
+          <th>Action</th>
+          <th>Confidence</th>
+          <th>Timestamp</th>
+        </tr>
+      `;
+
+      data.trades.forEach(trade => {
+        table.innerHTML += `
+          <tr>
+            <td>${trade.id}</td>
+            <td>${trade.symbol}</td>
+            <td>${trade.action}</td>
+            <td>${(trade.confidence * 100).toFixed(2)}%</td>
+            <td>${trade.timestamp}</td>
+          </tr>
+        `;
+      });
+    }
+    window.onload = loadTrades;
+  </script>
+</head>
+<body>
+  <h1>Trade Logs</h1>
+  <button onclick="loadTrades()">Refresh</button>
+  <table id="trade-table" border="1"></table>
+</body>
+</html>
