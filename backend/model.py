@@ -75,7 +75,7 @@ model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy']
 # Step 8: Train the model
 model.fit(
     X_train, y_train,
-    epochs=30,
+    epochs=20,
     batch_size=64,
     validation_split=0.1,
     callbacks=[EarlyStopping(monitor='val_loss', patience=5)],
@@ -85,6 +85,9 @@ model.fit(
 # Step 9: Evaluate and print test accuracy
 loss, accuracy = model.evaluate(X_test, y_test)
 print(f"✅ Test Accuracy: {accuracy:.4f}")
+
+loss, accuracy = model.evaluate(X_train, y_train)
+print(f"✅ Train Accuracy: {accuracy:.4f}")
 
 # Step 10: Save model and scaler
 os.makedirs("models", exist_ok=True)
