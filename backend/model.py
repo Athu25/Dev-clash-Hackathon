@@ -91,7 +91,7 @@ print(f"✅ Train Accuracy: {accuracy:.4f}")
 
 # Step 10: Save model and scaler
 os.makedirs("models", exist_ok=True)
-model.save("models/lstm_model.h5")
+model.save("models/lstm_model.keras", save_format="keras")
 joblib.dump(scaler, "models/scaler.pkl")
 
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
