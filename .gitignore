@@ -2,3 +2,4 @@ environment/
 .venv/
 env/
 data-(old)/
+node_modules/
