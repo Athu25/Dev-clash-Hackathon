@@ -1,33 +1,52 @@
 import pandas as pd
+import numpy as np
 from stable_baselines3 import DQN
 from stable_baselines3.common.vec_env import DummyVecEnv
 from backend.stock_trading_env import StockTradingEnv
-from backend.utils import add_sentiment_feature
-from datetime import datetime
+from tensorflow.keras.models import load_model
+from sklearn.preprocessing import StandardScaler
+import joblib
 
-# Load historical data
-df = pd.read_csv("data/AAPL_data.csv")
+# Load price and sentiment data
+raw_data = pd.read_csv("data/AAPL_data.csv")
 
-# Ensure Date is datetime (for sentiment analysis)
-df['Date'] = pd.to_datetime(df['Date'])
+# Load trained LSTM model and scaler
+lstm_model = load_model("models/lstm_model.h5")
+scaler = joblib.load("models/scaler.pkl")
 
-# Add sentiment scores dynamically
-df = add_sentiment_feature(df, stock_symbol='AAPL')
+# Preprocess data (must match LSTM training format)
+def create_lstm_features(df, time_steps=60):
+    features = df.drop(columns=['Date'])  # Assuming 'Date' column exists
+    features_scaled = scaler.transform(features)
 
-# Drop rows with missing data (just in case)
-df.dropna(inplace=True)
+    sequences = []
+    for i in range(len(features_scaled) - time_steps):
+        seq = features_scaled[i:i + time_steps]
+        sequences.append(seq)
 
-# Create environment
-env = DummyVecEnv([lambda: StockTradingEnv(df)])
+    return np.array(sequences)
 
-# Define DQN model
+# Add LSTM signal as a new feature for RL
+def add_lstm_signals(df):
+    df = df.copy()
+    X_seq = create_lstm_features(df)
+    predictions = lstm_model.predict(X_seq)
+    predictions = np.squeeze(predictions)
+
+    # Align with original df
+    lstm_signals = np.concatenate([np.zeros(len(df) - len(predictions)), predictions])
+    df['lstm_signal'] = lstm_signals
+    return df
+
+# Enhance the raw data
+enhanced_df = add_lstm_signals(raw_data)
+
+# Create RL environment with LSTM signals
+env = DummyVecEnv([lambda: StockTradingEnv(enhanced_df)])
+
+# Train DQN agent
 model = DQN("MlpPolicy", env, verbose=1)
-
-# Train the agent
-print("\n🚀 Training the RL agent...\n")
 model.learn(total_timesteps=10000)
-print("\n✅ Training completed!\n")
 
-# Save the trained model
+# Save RL agent
 model.save("models/rl_trading_model")
-print("📦 Model saved at: models/rl_trading_model")

@@ -9,9 +9,6 @@ try:
 except LookupError:
     nltk.download('vader_lexicon')
 
-# -----------------------------
-# CONFIGURE YOUR API KEY HERE
-# -----------------------------
 NEWS_API_KEY = "Yd88424f868f649c7b4dfd9a029f5279f"  
 def get_news_headlines(stock_symbol, date):
     """

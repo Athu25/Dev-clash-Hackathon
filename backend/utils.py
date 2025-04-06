@@ -2,6 +2,8 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 from backend.sentiment_analysis import get_sentiment_score
+import ta  #technical analysis library
+
 
 # For supervised ML (e.g., LSTM)
 def get_features_and_labels(df):
@@ -46,4 +48,23 @@ def add_sentiment_feature(df, stock_symbol='AAPL'):
         raise ValueError("Expected 'Date' column for adding sentiment feature.")
     df['Date'] = pd.to_datetime(df['Date'])
     df['sentiment_score'] = df['Date'].apply(lambda d: get_sentiment_score(stock_symbol, date=d.date()))
+    return df
+
+
+
+def add_technical_indicators(df):
+    df = df.copy()
+    df = df.sort_values("Date")
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    # Add all technical indicators
+    df = ta.add_all_ta_features(
+        df,
+        open="Open",
+        high="High",
+        low="Low",
+        close="Close",
+        volume="Volume",
+        fillna=True
+    )
     return df
